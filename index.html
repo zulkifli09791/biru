@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Haii yg suka biru</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background-color: #e6f2ff;
+      color: #2c6dbb;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 0 20px;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+      margin-bottom: 2rem;
+      animation: fadeIn 1s ease-in;
+    }
+
+    .btn {
+      background-color: #a3d4ff;
+      color: #2c6dbb;
+      border: none;
+      padding: 1rem 2.5rem;
+      font-size: clamp(1.2rem, 4.5vw, 1.4rem);
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(44, 109, 187, 0.2);
+    }
+
+    .btn:hover {
+      background-color: #8fc9ff;
+      transform: scale(1.05);
+    }
+
+    .message-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .message {
+      font-size: clamp(1.2rem, 4.8vw, 1.8rem);
+      font-weight: 600;
+      line-height: 1.6;
+      opacity: 0;
+      margin-bottom: 1.5rem;
+      word-wrap: break-word;
+      white-space: normal;
+      max-width: 90%;
+    }
+
+    .change-btn {
+      background-color: #ffffff;
+      color: #2c6dbb;
+      border: 2px solid #8fc9ff;
+      padding: 0.7rem 1.6rem;
+      font-size: clamp(1rem, 3.8vw, 1.1rem);
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .change-btn:hover {
+      background-color: #f0f8ff;
+    }
+
+    /* Animasi Fade In */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s forwards;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="welcome">
+    <h1>Halo, yang suka biru</h1>
+    <button class="btn" id="startBtn">Klik di sini 🔵</button>
+  </div>
+
+  <div class="message-container" id="messageContainer">
+    <div class="message" id="messageText"></div>
+    <button class="change-btn" id="changeBtn">Ganti Kalimat 💭</button>
+  </div>
+
+  <canvas id="particleCanvas"></canvas>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const welcome = document.getElementById('welcome');
+    const messageContainer = document.getElementById('messageContainer');
+    const messageText = document.getElementById('messageText');
+    const changeBtn = document.getElementById('changeBtn');
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const quotes = [
+      "Kadang kamu merasa lelah, itu wajar. Jangan lupa beri dirimu waktu untuk istirahat. Setelah itu, bangkit lagi, karena kamu punya kekuatan untuk menyelesaikan apa yang kamu mulai.",
+      "Jangan terlalu keras pada dirimu sendiri. Kamu sudah berusaha dengan baik, dan itu sudah cukup. Percayalah, langkah kecil yang kamu ambil setiap hari akan membawamu ke tempat yang kamu impikan.",
+      "Tidak semua hal harus sempurna. Yang penting kamu tetap berusaha, belajar, dan tidak berhenti melangkah. Prosesmu lebih berharga daripada hasil yang terlihat.",
+      "Kalau hari ini terasa berat, ingatlah bahwa esok selalu membawa kesempatan baru. Kamu hanya perlu satu langkah lagi untuk melihat perubahan yang kamu tunggu.",
+      "Kamu mungkin merasa sendiri, tapi sebenarnya tidak. Selalu ada orang yang peduli padamu, dan yang terpenting, kamu punya dirimu sendiri yang selalu berusaha kuat sampai sekarang."
+    ];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class StarParticle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 3 + 1;
+        this.speedX = (Math.random() - 0.5) * 2;
+        this.speedY = (Math.random() - 0.5) * 2;
+        this.color = '#8fc9ff';
+        this.life = 100;
+      }
+
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life--;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          this.life = 0;
+        }
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    let particles = [];
+
+    function createParticles(count) {
+      for (let i = 0; i < count; i++) {
+        particles.push(new StarParticle());
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (particles.length > 0) {
+        requestAnimationFrame(animateParticles);
+      } else {
+        showRandomMessage();
+      }
+    }
+
+    function getRandomQuote() {
+      return quotes[Math.floor(Math.random() * quotes.length)];
+    }
+
+    function showRandomMessage() {
+      messageText.textContent = getRandomQuote();
+      messageContainer.style.display = 'flex';
+
+      // Reset
+      messageText.style.opacity = '0';
+      changeBtn.style.opacity = '0';
+      messageText.classList.remove('fade-in');
+      changeBtn.classList.remove('fade-in');
+
+      // Animasi
+      setTimeout(() => {
+        messageText.classList.add('fade-in');
+        setTimeout(() => {
+          changeBtn.style.opacity = '1';
+          changeBtn.classList.add('fade-in');
+        }, 600);
+      }, 100);
+    }
+
+    startBtn.addEventListener('click', () => {
+      welcome.style.display = 'none';
+      createParticles(300);
+      animateParticles();
+    });
+
+    changeBtn.addEventListener('click', () => {
+      messageText.classList.remove('fade-in');
+      changeBtn.classList.remove('fade-in');
+      changeBtn.style.opacity = '0';
+
+      setTimeout(() => {
+        showRandomMessage();
+      }, 300);
+    });
+  </script>
+</body>
+</html>
